@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="description" content="Tire uma foto com a moldura personalizada da Deputada Aurelina Medeiros e compartilhe nas redes sociais.">
+    <meta name="theme-color" content="#0a2351">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Moldura — Deputada Aurelina Medeiros</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ============================================ -->
+    <!-- TELA INICIAL                                 -->
+    <!-- ============================================ -->
+    <section id="tela-inicial" class="tela tela-ativa">
+
+        <!-- Formas decorativas animadas -->
+        <div class="deco-shapes" aria-hidden="true">
+            <div class="deco-circle deco-circle-1"></div>
+            <div class="deco-circle deco-circle-2"></div>
+            <div class="deco-circle deco-circle-3"></div>
+            <div class="deco-line deco-line-1"></div>
+            <div class="deco-line deco-line-2"></div>
+            <div class="deco-diamond deco-diamond-1"></div>
+            <div class="deco-diamond deco-diamond-2"></div>
+        </div>
+
+        <!-- Faixa amarela superior -->
+        <div class="faixa-topo" aria-hidden="true">
+            <div class="faixa-topo-inner"></div>
+        </div>
+
+        <div class="tela-inicial-conteudo">
+            <!-- Badge institucional -->
+            <div class="badge-institucional fade-in">
+                <span class="badge-estrela">★</span>
+                <span>DEPUTADA ESTADUAL</span>
+                <span class="badge-estrela">★</span>
+            </div>
+
+            <!-- Nome da deputada -->
+            <div class="nome-hero fade-in delay-1">
+                <span class="nome-hero-primeiro">AURELINA</span>
+                <span class="nome-hero-segundo">MEDEIROS</span>
+            </div>
+
+            <!-- Separador decorativo -->
+            <div class="separador fade-in delay-1" aria-hidden="true">
+                <span class="separador-linha"></span>
+                <span class="separador-icone">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                        <circle cx="12" cy="13" r="4"/>
+                    </svg>
+                </span>
+                <span class="separador-linha"></span>
+            </div>
+
+            <!-- Card glassmorphism principal -->
+            <div class="card-principal fade-in delay-2">
+                <h1 class="card-titulo">Registre este momento</h1>
+                <p class="card-subtitulo">
+                    Tire uma foto com a nossa moldura personalizada e compartilhe nas suas redes sociais!
+                </p>
+
+                <button id="btn-acessar-camera" class="btn btn-cta" type="button">
+                    <span class="btn-cta-icone">
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                            <circle cx="12" cy="13" r="4"/>
+                        </svg>
+                    </span>
+                    <span>Acessar a câmera</span>
+                    <span class="btn-cta-seta" aria-hidden="true">→</span>
+                </button>
+
+                <div class="card-passos">
+                    <div class="passo">
+                        <span class="passo-num">1</span>
+                        <span class="passo-texto">Acesse a câmera</span>
+                    </div>
+                    <div class="passo-seta" aria-hidden="true">›</div>
+                    <div class="passo">
+                        <span class="passo-num">2</span>
+                        <span class="passo-texto">Tire sua foto</span>
+                    </div>
+                    <div class="passo-seta" aria-hidden="true">›</div>
+                    <div class="passo">
+                        <span class="passo-num">3</span>
+                        <span class="passo-texto">Compartilhe!</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aviso de privacidade -->
+            <p class="aviso-privacidade fade-in delay-3">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                Sua foto é processada no seu dispositivo. Nenhuma imagem é enviada a servidores.
+            </p>
+        </div>
+
+        <!-- Faixa amarela inferior -->
+        <div class="faixa-rodape" aria-hidden="true">
+            <div class="faixa-rodape-inner"></div>
+        </div>
+
+        <footer class="rodape fade-in delay-4">
+            <p>© 2026 Deputada Aurelina Medeiros — Todos os direitos reservados</p>
+        </footer>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- TELA DA CÂMERA                               -->
+    <!-- ============================================ -->
+    <section id="tela-camera" class="tela">
+        <div id="camera-container" class="camera-container">
+            <video id="video-camera" autoplay playsinline muted></video>
+            <img id="moldura-overlay" src="assets/moldura.png" alt="" draggable="false">
+            <div id="flash-overlay" class="flash-overlay" aria-hidden="true"></div>
+        </div>
+
+        <div class="controles-camera">
+            <button id="btn-voltar-camera" class="btn-controle" type="button" title="Voltar ao início" aria-label="Voltar ao início">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+                </svg>
+            </button>
+
+            <button id="btn-capturar" class="btn-capturar" type="button" title="Tirar foto" aria-label="Tirar foto">
+                <span class="btn-capturar-interno"></span>
+            </button>
+
+            <button id="btn-alternar-camera" class="btn-controle" type="button" title="Alternar câmera" aria-label="Alternar câmera">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                </svg>
+            </button>
+        </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- TELA DE PRÉ-VISUALIZAÇÃO                     -->
+    <!-- ============================================ -->
+    <section id="tela-preview" class="tela">
+        <div class="preview-header">
+            <span class="preview-badge">✨ Ficou incrível!</span>
+        </div>
+
+        <div class="preview-container">
+            <img id="preview-imagem" alt="Sua foto com a moldura da Deputada Aurelina Medeiros">
+        </div>
+
+        <div class="controles-preview">
+            <div class="controles-preview-linha">
+                <button id="btn-baixar" class="btn btn-primario btn-preview" type="button">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Baixar foto
+                </button>
+
+                <button id="btn-compartilhar" class="btn btn-secundario btn-preview" type="button">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                    </svg>
+                    Compartilhar
+                </button>
+            </div>
+
+            <div class="controles-preview-linha">
+                <button id="btn-nova-foto" class="btn btn-terciario btn-preview" type="button">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                    </svg>
+                    Tirar outra
+                </button>
+
+                <button id="btn-voltar-inicio" class="btn btn-terciario btn-preview" type="button">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                        <polyline points="9 22 9 12 15 12 15 22"/>
+                    </svg>
+                    Início
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- MODAL DE ERRO                                -->
+    <!-- ============================================ -->
+    <div id="modal-erro" class="modal-erro" role="dialog" aria-modal="true" aria-labelledby="texto-erro">
+        <div class="modal-erro-backdrop"></div>
+        <div class="modal-erro-conteudo">
+            <div class="modal-erro-icone" aria-hidden="true">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+            </div>
+            <p id="texto-erro"></p>
+            <button id="btn-fechar-erro" class="btn btn-primario" type="button">Entendi</button>
+        </div>
+    </div>
+
+    <!-- Canvas oculto para composição da imagem final -->
+    <canvas id="canvas-resultado" aria-hidden="true"></canvas>
+
+    <script src="script.js"></script>
+</body>
+</html>
