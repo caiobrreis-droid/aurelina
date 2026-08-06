@@ -19,20 +19,26 @@ let facingMode = 'user';       // 'user' = frontal, 'environment' = traseira
 let imagemFinalBlob = null;
 let molduraImg = null;
 
+/* Estado de Ajuste Interativo da Foto */
+let fotoOriginal = null;
+let ajusteFoto = { x: 0, y: 0, scale: 1.0 };
+let isDragging = false;
+let startX = 0, startY = 0;
+let initialPinchDist = 0;
+let initialPinchScale = 1.0;
+
 /* ============================================
    REFERÊNCIAS AOS ELEMENTOS
    ============================================ */
-const telaInicial   = document.getElementById('tela-inicial');
-const telaCamera    = document.getElementById('tela-camera');
-const telaPreview   = document.getElementById('tela-preview');
-const video         = document.getElementById('video-camera');
+const telaInicial    = document.getElementById('tela-inicial');
+const telaCamera     = document.getElementById('tela-camera');
+const telaPreview    = document.getElementById('tela-preview');
+const video          = document.getElementById('video-camera');
 const molduraOverlay = document.getElementById('moldura-overlay');
-const flashOverlay  = document.getElementById('flash-overlay');
-const canvas        = document.getElementById('canvas-resultado');
-const ctx           = canvas.getContext('2d');
-const previewImg    = document.getElementById('preview-imagem');
-const modalErro     = document.getElementById('modal-erro');
-const textoErro     = document.getElementById('texto-erro');
+const flashOverlay   = document.getElementById('flash-overlay');
+const canvasPreview  = document.getElementById('canvas-preview');
+const modalErro      = document.getElementById('modal-erro');
+const textoErro      = document.getElementById('texto-erro');
 
 const btnAcessarCamera  = document.getElementById('btn-acessar-camera');
 const btnAbrirGaleria   = document.getElementById('btn-abrir-galeria');
@@ -46,6 +52,12 @@ const btnCompartilhar   = document.getElementById('btn-compartilhar');
 const btnNovaFoto       = document.getElementById('btn-nova-foto');
 const btnVoltarInicio   = document.getElementById('btn-voltar-inicio');
 const btnFecharErro     = document.getElementById('btn-fechar-erro');
+
+/* Controles de Zoom e Reset */
+const sliderZoom     = document.getElementById('slider-zoom');
+const btnZoomIn      = document.getElementById('btn-zoom-in');
+const btnZoomOut     = document.getElementById('btn-zoom-out');
+const btnResetAjuste = document.getElementById('btn-reset-ajuste');
 
 /* ============================================
    EVENTOS
@@ -67,6 +79,45 @@ btnCompartilhar.addEventListener('click', compartilharFoto);
 btnNovaFoto.addEventListener('click', reiniciarCaptura);
 btnVoltarInicio.addEventListener('click', voltarInicio);
 btnFecharErro.addEventListener('click', fecharErro);
+
+// Eventos de Zoom e Reset
+if (sliderZoom) {
+    sliderZoom.addEventListener('input', (e) => {
+        ajusteFoto.scale = parseFloat(e.target.value);
+        renderizarPreviewAjustado();
+    });
+}
+if (btnZoomIn) {
+    btnZoomIn.addEventListener('click', () => {
+        ajusteFoto.scale = Math.min(3.0, Math.round((ajusteFoto.scale + 0.15) * 100) / 100);
+        if (sliderZoom) sliderZoom.value = ajusteFoto.scale;
+        renderizarPreviewAjustado();
+    });
+}
+if (btnZoomOut) {
+    btnZoomOut.addEventListener('click', () => {
+        ajusteFoto.scale = Math.max(0.5, Math.round((ajusteFoto.scale - 0.15) * 100) / 100);
+        if (sliderZoom) sliderZoom.value = ajusteFoto.scale;
+        renderizarPreviewAjustado();
+    });
+}
+if (btnResetAjuste) {
+    btnResetAjuste.addEventListener('click', resetarAjustes);
+}
+
+// Eventos de Interação no Canvas Preview (Drag, Pinch Zoom, Wheel)
+if (canvasPreview) {
+    canvasPreview.addEventListener('mousedown', onMouseDown);
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+
+    canvasPreview.addEventListener('touchstart', onTouchStart, { passive: false });
+    window.addEventListener('touchmove', onTouchMove, { passive: false });
+    window.addEventListener('touchend', onTouchEnd);
+    window.addEventListener('touchcancel', onTouchEnd);
+
+    canvasPreview.addEventListener('wheel', onWheel, { passive: false });
+}
 
 // Pré-carregar a moldura
 preCarregarMoldura();
@@ -94,7 +145,6 @@ function mostrarTela(tela) {
    INICIAR CÂMERA
    ============================================ */
 async function iniciarCamera() {
-    // Verificar suporte à API
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         mostrarMensagemErro(
             'Seu navegador não suporta acesso à câmera. ' +
@@ -116,7 +166,6 @@ async function iniciarCamera() {
         stream = await navigator.mediaDevices.getUserMedia(constraints);
         video.srcObject = stream;
 
-        // Esperar o vídeo estar pronto
         await new Promise((resolve, reject) => {
             video.onloadedmetadata = resolve;
             video.onerror = reject;
@@ -125,12 +174,8 @@ async function iniciarCamera() {
 
         await video.play();
 
-        // Aplicar espelhamento se câmera frontal
         atualizarEspelhamento();
-
-        // Verificar se o dispositivo tem mais de uma câmera
         verificarMultiplasCameras();
-
         mostrarTela(telaCamera);
 
     } catch (erro) {
@@ -150,7 +195,7 @@ function pararCamera() {
 }
 
 /* ============================================
-   ALTERNAR CÂMERA (frontal / traseira)
+   ALTERNAR CÂMERA
    ============================================ */
 async function alternarCamera() {
     facingMode = facingMode === 'user' ? 'environment' : 'user';
@@ -158,9 +203,6 @@ async function alternarCamera() {
     await iniciarCamera();
 }
 
-/* ============================================
-   ESPELHAMENTO — frente espelha, traseira não
-   ============================================ */
 function atualizarEspelhamento() {
     if (facingMode === 'user') {
         video.classList.add('espelhado');
@@ -169,9 +211,6 @@ function atualizarEspelhamento() {
     }
 }
 
-/* ============================================
-   VERIFICAR SE HÁ MAIS DE UMA CÂMERA
-   ============================================ */
 async function verificarMultiplasCameras() {
     try {
         const dispositivos = await navigator.mediaDevices.enumerateDevices();
@@ -187,91 +226,34 @@ async function verificarMultiplasCameras() {
 }
 
 /* ============================================
-   CAPTURAR FOTO
+   CAPTURAR FOTO DA CÂMERA
    ============================================ */
 async function capturarFoto() {
-    // Efeito de flash
     flashOverlay.classList.add('ativo');
     setTimeout(() => flashOverlay.classList.remove('ativo'), 500);
 
-    // Gerar imagem final
-    await gerarImagemFinal();
+    // Criar um canvas temporário para extrair o frame atual da câmera
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = video.videoWidth;
+    tempCanvas.height = video.videoHeight;
+    const tCtx = tempCanvas.getContext('2d');
 
-    // Parar a câmera
+    // Espelhar horizontalmente se câmera frontal
+    if (facingMode === 'user') {
+        tCtx.translate(video.videoWidth, 0);
+        tCtx.scale(-1, 1);
+    }
+    tCtx.drawImage(video, 0, 0);
+
+    const tempImg = new Image();
+    tempImg.src = tempCanvas.toDataURL('image/png');
+    await new Promise((resolve) => { tempImg.onload = resolve; });
+
+    fotoOriginal = tempImg;
+    resetarAjustes();
+
     pararCamera();
-
-    // Mostrar tela de preview
     mostrarTela(telaPreview);
-}
-
-/* ============================================
-   GERAR IMAGEM FINAL (canvas)
-   ============================================ */
-function gerarImagemFinal() {
-    return new Promise((resolve, reject) => {
-        const largura = CONFIG.LARGURA_FINAL;
-        const altura = CONFIG.ALTURA_FINAL;
-
-        canvas.width = largura;
-        canvas.height = altura;
-
-        ctx.clearRect(0, 0, largura, altura);
-
-        // --- Desenhar vídeo com recorte proporcional (object-fit: cover) ---
-        const vw = video.videoWidth;
-        const vh = video.videoHeight;
-
-        const canvasRatio = largura / altura;
-        const videoRatio = vw / vh;
-
-        let sx, sy, sw, sh;
-
-        if (videoRatio > canvasRatio) {
-            // Vídeo mais largo: recortar laterais
-            sh = vh;
-            sw = vh * canvasRatio;
-            sx = (vw - sw) / 2;
-            sy = 0;
-        } else {
-            // Vídeo mais alto: recortar topo/base
-            sw = vw;
-            sh = vw / canvasRatio;
-            sx = 0;
-            sy = (vh - sh) / 2;
-        }
-
-        // Espelhar horizontalmente se câmera frontal
-        if (facingMode === 'user') {
-            ctx.save();
-            ctx.translate(largura, 0);
-            ctx.scale(-1, 1);
-            ctx.drawImage(video, sx, sy, sw, sh, 0, 0, largura, altura);
-            ctx.restore();
-        } else {
-            ctx.drawImage(video, sx, sy, sw, sh, 0, 0, largura, altura);
-        }
-
-        // --- Desenhar moldura por cima ---
-        if (molduraImg && molduraImg.complete && molduraImg.naturalWidth > 0) {
-            ctx.drawImage(molduraImg, 0, 0, largura, altura);
-        }
-
-        // --- Converter para Blob ---
-        canvas.toBlob(
-            (blob) => {
-                if (!blob) {
-                    mostrarMensagemErro('Não foi possível gerar a imagem. Tente novamente.');
-                    reject(new Error('Blob nulo'));
-                    return;
-                }
-                imagemFinalBlob = blob;
-                previewImg.src = URL.createObjectURL(blob);
-                resolve();
-            },
-            CONFIG.TIPO_MIME,
-            CONFIG.QUALIDADE
-        );
-    });
 }
 
 /* ============================================
@@ -289,16 +271,12 @@ function processarFotoGaleria(e) {
     const leitor = new FileReader();
     leitor.onload = function(evento) {
         const img = new Image();
-        img.onload = async function() {
-            try {
-                await gerarImagemFinalDaImagem(img);
-                pararCamera();
-                mostrarTela(telaPreview);
-            } catch (erro) {
-                mostrarMensagemErro('Erro ao processar a imagem da galeria.');
-            } finally {
-                inputGaleria.value = '';
-            }
+        img.onload = function() {
+            fotoOriginal = img;
+            resetarAjustes();
+            pararCamera();
+            mostrarTela(telaPreview);
+            inputGaleria.value = '';
         };
         img.onerror = function() {
             mostrarMensagemErro('Erro ao carregar a imagem selecionada.');
@@ -313,59 +291,147 @@ function processarFotoGaleria(e) {
     leitor.readAsDataURL(arquivo);
 }
 
-function gerarImagemFinalDaImagem(imgCarregada) {
-    return new Promise((resolve, reject) => {
-        const largura = CONFIG.LARGURA_FINAL;
-        const altura = CONFIG.ALTURA_FINAL;
+/* ============================================
+   AJUSTE E RENDERIZAÇÃO INTERATIVA NO CANVAS
+   ============================================ */
+function resetarAjustes() {
+    ajusteFoto = { x: 0, y: 0, scale: 1.0 };
+    if (sliderZoom) sliderZoom.value = 1.0;
+    renderizarPreviewAjustado();
+}
 
-        canvas.width = largura;
-        canvas.height = altura;
+function getCanvasScaleFactor() {
+    if (!canvasPreview) return 1;
+    const rect = canvasPreview.getBoundingClientRect();
+    if (!rect.width) return 1;
+    return CONFIG.LARGURA_FINAL / rect.width;
+}
 
-        ctx.clearRect(0, 0, largura, altura);
+function renderizarPreviewAjustado() {
+    if (!fotoOriginal || !canvasPreview) return;
 
-        const iw = imgCarregada.naturalWidth || imgCarregada.width;
-        const ih = imgCarregada.naturalHeight || imgCarregada.height;
+    const W = CONFIG.LARGURA_FINAL;
+    const H = CONFIG.ALTURA_FINAL;
 
-        const canvasRatio = largura / altura;
-        const imgRatio = iw / ih;
+    canvasPreview.width = W;
+    canvasPreview.height = H;
+    const pCtx = canvasPreview.getContext('2d');
 
-        let sx, sy, sw, sh;
+    pCtx.clearRect(0, 0, W, H);
 
-        if (imgRatio > canvasRatio) {
-            sh = ih;
-            sw = ih * canvasRatio;
-            sx = (iw - sw) / 2;
-            sy = 0;
-        } else {
-            sw = iw;
-            sh = iw / canvasRatio;
-            sx = 0;
-            sy = (ih - sh) / 2;
-        }
+    const iw = fotoOriginal.naturalWidth || fotoOriginal.width;
+    const ih = fotoOriginal.naturalHeight || fotoOriginal.height;
 
-        // Desenhar a foto enviada pelo usuário sem espelhar
-        ctx.drawImage(imgCarregada, sx, sy, sw, sh, 0, 0, largura, altura);
+    const canvasRatio = W / H;
+    const imgRatio = iw / ih;
 
-        // Desenhar moldura por cima
-        if (molduraImg && molduraImg.complete && molduraImg.naturalWidth > 0) {
-            ctx.drawImage(molduraImg, 0, 0, largura, altura);
-        }
+    let baseW, baseH;
+    if (imgRatio > canvasRatio) {
+        baseH = H;
+        baseW = H * imgRatio;
+    } else {
+        baseW = W;
+        baseH = W / imgRatio;
+    }
 
-        canvas.toBlob(
-            (blob) => {
-                if (!blob) {
-                    mostrarMensagemErro('Não foi possível gerar a imagem. Tente novamente.');
-                    reject(new Error('Blob nulo'));
-                    return;
-                }
-                imagemFinalBlob = blob;
-                previewImg.src = URL.createObjectURL(blob);
-                resolve();
-            },
-            CONFIG.TIPO_MIME,
-            CONFIG.QUALIDADE
-        );
-    });
+    const finalW = baseW * ajusteFoto.scale;
+    const finalH = baseH * ajusteFoto.scale;
+
+    const drawX = (W - finalW) / 2 + ajusteFoto.x;
+    const drawY = (H - finalH) / 2 + ajusteFoto.y;
+
+    // 1. Desenhar a foto com os ajustes de translação e zoom do usuário
+    pCtx.drawImage(fotoOriginal, drawX, drawY, finalW, finalH);
+
+    // 2. Desenhar a moldura por cima
+    if (molduraImg && molduraImg.complete && molduraImg.naturalWidth > 0) {
+        pCtx.drawImage(molduraImg, 0, 0, W, H);
+    }
+
+    // 3. Atualizar o Blob para download e compartilhamento
+    canvasPreview.toBlob(
+        (blob) => {
+            imagemFinalBlob = blob;
+        },
+        CONFIG.TIPO_MIME,
+        CONFIG.QUALIDADE
+    );
+}
+
+/* ============================================
+   CONTROLES DE ARRASTAR E PINÇA (TOUCH & MOUSE)
+   ============================================ */
+function onMouseDown(e) {
+    isDragging = true;
+    const factor = getCanvasScaleFactor();
+    startX = e.clientX * factor - ajusteFoto.x;
+    startY = e.clientY * factor - ajusteFoto.y;
+}
+
+function onMouseMove(e) {
+    if (!isDragging) return;
+    const factor = getCanvasScaleFactor();
+    ajusteFoto.x = e.clientX * factor - startX;
+    ajusteFoto.y = e.clientY * factor - startY;
+    renderizarPreviewAjustado();
+}
+
+function onMouseUp() {
+    isDragging = false;
+}
+
+function onTouchStart(e) {
+    if (e.touches.length === 1) {
+        isDragging = true;
+        const factor = getCanvasScaleFactor();
+        const touch = e.touches[0];
+        startX = touch.clientX * factor - ajusteFoto.x;
+        startY = touch.clientY * factor - ajusteFoto.y;
+    } else if (e.touches.length === 2) {
+        isDragging = false;
+        const t1 = e.touches[0];
+        const t2 = e.touches[1];
+        initialPinchDist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+        initialPinchScale = ajusteFoto.scale;
+    }
+}
+
+function onTouchMove(e) {
+    if (e.touches.length === 1 && isDragging) {
+        e.preventDefault();
+        const factor = getCanvasScaleFactor();
+        const touch = e.touches[0];
+        ajusteFoto.x = touch.clientX * factor - startX;
+        ajusteFoto.y = touch.clientY * factor - startY;
+        renderizarPreviewAjustado();
+    } else if (e.touches.length === 2 && initialPinchDist > 0) {
+        e.preventDefault();
+        const t1 = e.touches[0];
+        const t2 = e.touches[1];
+        const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+        const newScale = Math.min(3.0, Math.max(0.5, initialPinchScale * (dist / initialPinchDist)));
+        ajusteFoto.scale = Math.round(newScale * 100) / 100;
+        if (sliderZoom) sliderZoom.value = ajusteFoto.scale;
+        renderizarPreviewAjustado();
+    }
+}
+
+function onTouchEnd(e) {
+    if (e.touches.length < 2) {
+        initialPinchDist = 0;
+    }
+    if (e.touches.length === 0) {
+        isDragging = false;
+    }
+}
+
+function onWheel(e) {
+    e.preventDefault();
+    const delta = e.deltaY < 0 ? 0.08 : -0.08;
+    const newScale = Math.min(3.0, Math.max(0.5, ajusteFoto.scale + delta));
+    ajusteFoto.scale = Math.round(newScale * 100) / 100;
+    if (sliderZoom) sliderZoom.value = ajusteFoto.scale;
+    renderizarPreviewAjustado();
 }
 
 /* ============================================
@@ -382,7 +448,6 @@ function baixarFoto() {
     link.click();
     document.body.removeChild(link);
 
-    // Liberar após um breve delay para garantir o download
     setTimeout(() => URL.revokeObjectURL(url), 5000);
 }
 
@@ -396,7 +461,6 @@ async function compartilharFoto() {
         type: CONFIG.TIPO_MIME
     });
 
-    // Verificar suporte à Web Share API com arquivos
     if (navigator.share && navigator.canShare && navigator.canShare({ files: [arquivo] })) {
         try {
             await navigator.share({
@@ -405,7 +469,6 @@ async function compartilharFoto() {
                 files: [arquivo]
             });
         } catch (erro) {
-            // Ignorar cancelamento pelo usuário
             if (erro.name !== 'AbortError') {
                 mostrarMensagemErro(
                     'Não foi possível compartilhar a foto. ' +
@@ -414,7 +477,6 @@ async function compartilharFoto() {
             }
         }
     } else {
-        // Fallback: orientar a baixar
         mostrarMensagemErro(
             'O compartilhamento direto não está disponível neste navegador. ' +
             'Use o botão "Baixar foto" e compartilhe a imagem manualmente nas suas redes sociais.'
@@ -423,31 +485,23 @@ async function compartilharFoto() {
 }
 
 /* ============================================
-   REINICIAR CAPTURA (tirar outra foto)
+   REINICIAR CAPTURA / VOLTAR
    ============================================ */
 async function reiniciarCaptura() {
     liberarImagemAnterior();
     await iniciarCamera();
 }
 
-/* ============================================
-   VOLTAR AO INÍCIO
-   ============================================ */
 function voltarInicio() {
     pararCamera();
     liberarImagemAnterior();
     mostrarTela(telaInicial);
 }
 
-/* ============================================
-   LIBERAR MEMÓRIA DA IMAGEM ANTERIOR
-   ============================================ */
 function liberarImagemAnterior() {
-    if (previewImg.src && previewImg.src.startsWith('blob:')) {
-        URL.revokeObjectURL(previewImg.src);
-    }
-    previewImg.src = '';
+    fotoOriginal = null;
     imagemFinalBlob = null;
+    ajusteFoto = { x: 0, y: 0, scale: 1.0 };
 }
 
 /* ============================================
@@ -469,7 +523,6 @@ function tratarErroCam(erro) {
             'Não foi possível acessar a câmera. ' +
             'Ela pode estar sendo usada por outro aplicativo. Feche outros apps e tente novamente.';
     } else if (erro.name === 'OverconstrainedError') {
-        // Tentar sem especificar facingMode
         if (facingMode === 'user') {
             mensagem =
                 'A câmera frontal não está disponível. ' +
@@ -500,10 +553,8 @@ function fecharErro() {
     modalErro.classList.remove('ativo');
 }
 
-// Fechar modal clicando no backdrop
 modalErro.querySelector('.modal-erro-backdrop').addEventListener('click', fecharErro);
 
-// Fechar modal com Escape
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && modalErro.classList.contains('ativo')) {
         fecharErro();
