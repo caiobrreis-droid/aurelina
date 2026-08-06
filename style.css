@@ -429,6 +429,43 @@ button:focus-visible {
     font-family: var(--fonte-corpo);
 }
 
+/* Botões da tela inicial */
+.botoes-inicio {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+}
+
+.btn-secundario-opcao {
+    width: 100%;
+    padding: 14px 24px;
+    border-radius: var(--raio-borda-btn);
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--amarelo);
+    border: 1.5px solid rgba(244, 197, 66, 0.35);
+    font-family: var(--fonte-titulo);
+    font-size: 0.98rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all var(--transicao);
+    backdrop-filter: blur(8px);
+}
+
+.btn-secundario-opcao:hover {
+    background: rgba(244, 197, 66, 0.16);
+    border-color: var(--amarelo);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(244, 197, 66, 0.25);
+}
+
+.btn-secundario-opcao:active {
+    transform: translateY(0);
+}
+
 /* CTA principal — grande botão amarelo */
 .btn-cta {
     width: 100%;

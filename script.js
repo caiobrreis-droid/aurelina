@@ -35,6 +35,9 @@ const modalErro     = document.getElementById('modal-erro');
 const textoErro     = document.getElementById('texto-erro');
 
 const btnAcessarCamera  = document.getElementById('btn-acessar-camera');
+const btnAbrirGaleria   = document.getElementById('btn-abrir-galeria');
+const btnGaleriaCamera  = document.getElementById('btn-galeria-camera');
+const inputGaleria      = document.getElementById('input-galeria');
 const btnCapturar       = document.getElementById('btn-capturar');
 const btnAlternarCamera = document.getElementById('btn-alternar-camera');
 const btnVoltarCamera   = document.getElementById('btn-voltar-camera');
@@ -48,6 +51,14 @@ const btnFecharErro     = document.getElementById('btn-fechar-erro');
    EVENTOS
    ============================================ */
 btnAcessarCamera.addEventListener('click', iniciarCamera);
+if (btnAbrirGaleria) {
+    btnAbrirGaleria.addEventListener('click', () => inputGaleria.click());
+}
+if (btnGaleriaCamera) {
+    btnGaleriaCamera.addEventListener('click', () => inputGaleria.click());
+}
+inputGaleria.addEventListener('change', processarFotoGaleria);
+
 btnCapturar.addEventListener('click', capturarFoto);
 btnAlternarCamera.addEventListener('click', alternarCamera);
 btnVoltarCamera.addEventListener('click', voltarInicio);
@@ -246,6 +257,100 @@ function gerarImagemFinal() {
         }
 
         // --- Converter para Blob ---
+        canvas.toBlob(
+            (blob) => {
+                if (!blob) {
+                    mostrarMensagemErro('Não foi possível gerar a imagem. Tente novamente.');
+                    reject(new Error('Blob nulo'));
+                    return;
+                }
+                imagemFinalBlob = blob;
+                previewImg.src = URL.createObjectURL(blob);
+                resolve();
+            },
+            CONFIG.TIPO_MIME,
+            CONFIG.QUALIDADE
+        );
+    });
+}
+
+/* ============================================
+   PROCESSAR FOTO DA GALERIA
+   ============================================ */
+function processarFotoGaleria(e) {
+    const arquivo = e.target.files[0];
+    if (!arquivo) return;
+
+    if (!arquivo.type.startsWith('image/')) {
+        mostrarMensagemErro('Por favor, selecione um arquivo de imagem válido.');
+        return;
+    }
+
+    const leitor = new FileReader();
+    leitor.onload = function(evento) {
+        const img = new Image();
+        img.onload = async function() {
+            try {
+                await gerarImagemFinalDaImagem(img);
+                pararCamera();
+                mostrarTela(telaPreview);
+            } catch (erro) {
+                mostrarMensagemErro('Erro ao processar a imagem da galeria.');
+            } finally {
+                inputGaleria.value = '';
+            }
+        };
+        img.onerror = function() {
+            mostrarMensagemErro('Erro ao carregar a imagem selecionada.');
+            inputGaleria.value = '';
+        };
+        img.src = evento.target.result;
+    };
+    leitor.onerror = function() {
+        mostrarMensagemErro('Não foi possível ler o arquivo selecionado.');
+        inputGaleria.value = '';
+    };
+    leitor.readAsDataURL(arquivo);
+}
+
+function gerarImagemFinalDaImagem(imgCarregada) {
+    return new Promise((resolve, reject) => {
+        const largura = CONFIG.LARGURA_FINAL;
+        const altura = CONFIG.ALTURA_FINAL;
+
+        canvas.width = largura;
+        canvas.height = altura;
+
+        ctx.clearRect(0, 0, largura, altura);
+
+        const iw = imgCarregada.naturalWidth || imgCarregada.width;
+        const ih = imgCarregada.naturalHeight || imgCarregada.height;
+
+        const canvasRatio = largura / altura;
+        const imgRatio = iw / ih;
+
+        let sx, sy, sw, sh;
+
+        if (imgRatio > canvasRatio) {
+            sh = ih;
+            sw = ih * canvasRatio;
+            sx = (iw - sw) / 2;
+            sy = 0;
+        } else {
+            sw = iw;
+            sh = iw / canvasRatio;
+            sx = 0;
+            sy = (ih - sh) / 2;
+        }
+
+        // Desenhar a foto enviada pelo usuário sem espelhar
+        ctx.drawImage(imgCarregada, sx, sy, sw, sh, 0, 0, largura, altura);
+
+        // Desenhar moldura por cima
+        if (molduraImg && molduraImg.complete && molduraImg.naturalWidth > 0) {
+            ctx.drawImage(molduraImg, 0, 0, largura, altura);
+        }
+
         canvas.toBlob(
             (blob) => {
                 if (!blob) {
