@@ -17,11 +17,9 @@ const CONFIG = {
 let stream = null;
 let facingMode = 'user';       // 'user' = frontal, 'environment' = traseira
 let imagemFinalBlob = null;
-let molduraImg = null;
-
-/* Estado de Ajuste Interativo da Foto */
+let molduraImg = null;/* Estado de Ajuste Interativo da Moldura */
 let fotoOriginal = null;
-let ajusteFoto = { x: 0, y: 0, scale: 1.0 };
+let ajusteMoldura = { x: 0, y: 0, scale: 1.0 };
 let isDragging = false;
 let startX = 0, startY = 0;
 let initialPinchDist = 0;
@@ -80,24 +78,24 @@ btnNovaFoto.addEventListener('click', reiniciarCaptura);
 btnVoltarInicio.addEventListener('click', voltarInicio);
 btnFecharErro.addEventListener('click', fecharErro);
 
-// Eventos de Zoom e Reset
+// Eventos de Zoom e Reset da Moldura
 if (sliderZoom) {
     sliderZoom.addEventListener('input', (e) => {
-        ajusteFoto.scale = parseFloat(e.target.value);
+        ajusteMoldura.scale = parseFloat(e.target.value);
         renderizarPreviewAjustado();
     });
 }
 if (btnZoomIn) {
     btnZoomIn.addEventListener('click', () => {
-        ajusteFoto.scale = Math.min(3.0, Math.round((ajusteFoto.scale + 0.15) * 100) / 100);
-        if (sliderZoom) sliderZoom.value = ajusteFoto.scale;
+        ajusteMoldura.scale = Math.min(3.0, Math.round((ajusteMoldura.scale + 0.15) * 100) / 100);
+        if (sliderZoom) sliderZoom.value = ajusteMoldura.scale;
         renderizarPreviewAjustado();
     });
 }
 if (btnZoomOut) {
     btnZoomOut.addEventListener('click', () => {
-        ajusteFoto.scale = Math.max(0.5, Math.round((ajusteFoto.scale - 0.15) * 100) / 100);
-        if (sliderZoom) sliderZoom.value = ajusteFoto.scale;
+        ajusteMoldura.scale = Math.max(0.5, Math.round((ajusteMoldura.scale - 0.15) * 100) / 100);
+        if (sliderZoom) sliderZoom.value = ajusteMoldura.scale;
         renderizarPreviewAjustado();
     });
 }
@@ -105,7 +103,7 @@ if (btnResetAjuste) {
     btnResetAjuste.addEventListener('click', resetarAjustes);
 }
 
-// Eventos de Interação no Canvas Preview (Drag, Pinch Zoom, Wheel)
+// Eventos de Interação no Canvas Preview (Arrastar Moldura, Pinça, Wheel)
 if (canvasPreview) {
     canvasPreview.addEventListener('mousedown', onMouseDown);
     window.addEventListener('mousemove', onMouseMove);
@@ -232,13 +230,11 @@ async function capturarFoto() {
     flashOverlay.classList.add('ativo');
     setTimeout(() => flashOverlay.classList.remove('ativo'), 500);
 
-    // Criar um canvas temporário para extrair o frame atual da câmera
     const tempCanvas = document.createElement('canvas');
     tempCanvas.width = video.videoWidth;
     tempCanvas.height = video.videoHeight;
     const tCtx = tempCanvas.getContext('2d');
 
-    // Espelhar horizontalmente se câmera frontal
     if (facingMode === 'user') {
         tCtx.translate(video.videoWidth, 0);
         tCtx.scale(-1, 1);
@@ -292,10 +288,10 @@ function processarFotoGaleria(e) {
 }
 
 /* ============================================
-   AJUSTE E RENDERIZAÇÃO INTERATIVA NO CANVAS
+   AJUSTE E RENDERIZAÇÃO INTERATIVA DA MOLDURA
    ============================================ */
 function resetarAjustes() {
-    ajusteFoto = { x: 0, y: 0, scale: 1.0 };
+    ajusteMoldura = { x: 0, y: 0, scale: 1.0 };
     if (sliderZoom) sliderZoom.value = 1.0;
     renderizarPreviewAjustado();
 }
@@ -319,43 +315,47 @@ function renderizarPreviewAjustado() {
 
     pCtx.clearRect(0, 0, W, H);
 
+    // 1. Desenhar a FOTO FIXA no fundo (recorte proporcional cover)
     const iw = fotoOriginal.naturalWidth || fotoOriginal.width;
     const ih = fotoOriginal.naturalHeight || fotoOriginal.height;
 
     const canvasRatio = W / H;
     const imgRatio = iw / ih;
 
-    let baseW, baseH;
+    let sx, sy, sw, sh;
     if (imgRatio > canvasRatio) {
-        baseH = H;
-        baseW = H * imgRatio;
+        sh = ih;
+        sw = ih * canvasRatio;
+        sx = (iw - sw) / 2;
+        sy = 0;
     } else {
-        baseW = W;
-        baseH = W / imgRatio;
+        sw = iw;
+        sh = iw / canvasRatio;
+        sx = 0;
+        sy = (ih - sh) / 2;
     }
 
-    const finalW = baseW * ajusteFoto.scale;
-    const finalH = baseH * ajusteFoto.scale;
+    pCtx.drawImage(fotoOriginal, sx, sy, sw, sh, 0, 0, W, H);
 
-    const drawX = (W - finalW) / 2 + ajusteFoto.x;
-    const drawY = (H - finalH) / 2 + ajusteFoto.y;
-
-    // 1. Desenhar a foto com os ajustes de translação e zoom do usuário
-    pCtx.drawImage(fotoOriginal, drawX, drawY, finalW, finalH);
-
-    // 2. Desenhar a moldura por cima
+    // 2. Desenhar a MOLDURA por cima com os ajustes do usuário (posição e escala)
     if (molduraImg && molduraImg.complete && molduraImg.naturalWidth > 0) {
-        pCtx.drawImage(molduraImg, 0, 0, W, H);
-    }
+        const finalW = W * ajusteMoldura.scale;
+        const finalH = H * ajusteMoldura.scale;
 
-    // 3. Desenhar contorno circular extremamente fino e sutil
-    pCtx.save();
-    pCtx.beginPath();
-    pCtx.arc(W / 2, H / 2, (Math.min(W, H) / 2) - 0.5, 0, 2 * Math.PI);
-    pCtx.lineWidth = 0.5;
-    pCtx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
-    pCtx.stroke();
-    pCtx.restore();
+        const drawX = (W - finalW) / 2 + ajusteMoldura.x;
+        const drawY = (H - finalH) / 2 + ajusteMoldura.y;
+
+        pCtx.drawImage(molduraImg, drawX, drawY, finalW, finalH);
+
+        // 3. Desenhar contorno circular sutil ao redor da moldura ajustada
+        pCtx.save();
+        pCtx.beginPath();
+        pCtx.arc(drawX + finalW / 2, drawY + finalH / 2, (Math.min(finalW, finalH) / 2) - 0.5, 0, 2 * Math.PI);
+        pCtx.lineWidth = 0.5;
+        pCtx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+        pCtx.stroke();
+        pCtx.restore();
+    }
 
     // 4. Atualizar o Blob para download e compartilhamento
     canvasPreview.toBlob(
@@ -368,20 +368,20 @@ function renderizarPreviewAjustado() {
 }
 
 /* ============================================
-   CONTROLES DE ARRASTAR E PINÇA (TOUCH & MOUSE)
+   CONTROLES DE ARRASTAR A MOLDURA E PINÇA (TOUCH & MOUSE)
    ============================================ */
 function onMouseDown(e) {
     isDragging = true;
     const factor = getCanvasScaleFactor();
-    startX = e.clientX * factor - ajusteFoto.x;
-    startY = e.clientY * factor - ajusteFoto.y;
+    startX = e.clientX * factor - ajusteMoldura.x;
+    startY = e.clientY * factor - ajusteMoldura.y;
 }
 
 function onMouseMove(e) {
     if (!isDragging) return;
     const factor = getCanvasScaleFactor();
-    ajusteFoto.x = e.clientX * factor - startX;
-    ajusteFoto.y = e.clientY * factor - startY;
+    ajusteMoldura.x = e.clientX * factor - startX;
+    ajusteMoldura.y = e.clientY * factor - startY;
     renderizarPreviewAjustado();
 }
 
@@ -394,14 +394,14 @@ function onTouchStart(e) {
         isDragging = true;
         const factor = getCanvasScaleFactor();
         const touch = e.touches[0];
-        startX = touch.clientX * factor - ajusteFoto.x;
-        startY = touch.clientY * factor - ajusteFoto.y;
+        startX = touch.clientX * factor - ajusteMoldura.x;
+        startY = touch.clientY * factor - ajusteMoldura.y;
     } else if (e.touches.length === 2) {
         isDragging = false;
         const t1 = e.touches[0];
         const t2 = e.touches[1];
         initialPinchDist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
-        initialPinchScale = ajusteFoto.scale;
+        initialPinchScale = ajusteMoldura.scale;
     }
 }
 
@@ -410,8 +410,8 @@ function onTouchMove(e) {
         e.preventDefault();
         const factor = getCanvasScaleFactor();
         const touch = e.touches[0];
-        ajusteFoto.x = touch.clientX * factor - startX;
-        ajusteFoto.y = touch.clientY * factor - startY;
+        ajusteMoldura.x = touch.clientX * factor - startX;
+        ajusteMoldura.y = touch.clientY * factor - startY;
         renderizarPreviewAjustado();
     } else if (e.touches.length === 2 && initialPinchDist > 0) {
         e.preventDefault();
@@ -419,8 +419,8 @@ function onTouchMove(e) {
         const t2 = e.touches[1];
         const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
         const newScale = Math.min(3.0, Math.max(0.5, initialPinchScale * (dist / initialPinchDist)));
-        ajusteFoto.scale = Math.round(newScale * 100) / 100;
-        if (sliderZoom) sliderZoom.value = ajusteFoto.scale;
+        ajusteMoldura.scale = Math.round(newScale * 100) / 100;
+        if (sliderZoom) sliderZoom.value = ajusteMoldura.scale;
         renderizarPreviewAjustado();
     }
 }
@@ -437,9 +437,9 @@ function onTouchEnd(e) {
 function onWheel(e) {
     e.preventDefault();
     const delta = e.deltaY < 0 ? 0.08 : -0.08;
-    const newScale = Math.min(3.0, Math.max(0.5, ajusteFoto.scale + delta));
-    ajusteFoto.scale = Math.round(newScale * 100) / 100;
-    if (sliderZoom) sliderZoom.value = ajusteFoto.scale;
+    const newScale = Math.min(3.0, Math.max(0.5, ajusteMoldura.scale + delta));
+    ajusteMoldura.scale = Math.round(newScale * 100) / 100;
+    if (sliderZoom) sliderZoom.value = ajusteMoldura.scale;
     renderizarPreviewAjustado();
 }
 
@@ -510,7 +510,7 @@ function voltarInicio() {
 function liberarImagemAnterior() {
     fotoOriginal = null;
     imagemFinalBlob = null;
-    ajusteFoto = { x: 0, y: 0, scale: 1.0 };
+    ajusteMoldura = { x: 0, y: 0, scale: 1.0 };
 }
 
 /* ============================================
