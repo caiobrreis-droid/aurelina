@@ -607,6 +607,16 @@ button:focus-visible {
     z-index: 20;
 }
 
+.rodape,
+.rodape *,
+.copyright-texto,
+#tela-inicial .rodape,
+#tela-inicial .rodape *,
+#tela-inicial .credito-desenvolvedor,
+#tela-inicial .credito-desenvolvedor span {
+    color: #ffffff !important;
+}
+
 .copyright-texto {
     font-size: 0.78rem;
     color: #ffffff !important;
@@ -621,7 +631,7 @@ button:focus-visible {
     gap: 8px;
     padding: 8px 22px;
     border-radius: 50px;
-    background: rgba(18, 59, 115, 0.9) !important;
+    background: rgba(18, 59, 115, 0.95) !important;
     border: 1.5px solid #ffd700 !important;
     color: #ffffff !important;
     font-size: 0.9rem;
@@ -631,15 +641,15 @@ button:focus-visible {
     backdrop-filter: blur(10px);
 }
 
-.credito-desenvolvedor *,
-.credito-desenvolvedor span,
-.credito-desenvolvedor strong {
-    color: #ffffff !important;
+.credito-desenvolvedor strong,
+#tela-inicial .credito-desenvolvedor strong {
+    color: #ffd700 !important;
     font-weight: 800 !important;
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
 }
 
-.credito-desenvolvedor svg {
+.credito-desenvolvedor svg,
+#tela-inicial .credito-desenvolvedor svg {
     color: #ffd700 !important;
     stroke: #ffd700 !important;
     flex-shrink: 0;
