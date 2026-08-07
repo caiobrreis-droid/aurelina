@@ -377,9 +377,16 @@ function renderizarPreviewAjustado() {
     pCtx.drawImage(fotoOriginal, drawFotoX, drawFotoY, finalFotoW, finalFotoH);
 
     // 2. Desenhar a MOLDURA por cima (com posição e zoom de ajusteMoldura)
+    // A moldura é quadrada (1350x1350), então usamos o maior lado do canvas
+    // para manter a proporção 1:1 e o formato CIRCULAR perfeito
     if (molduraImg && molduraImg.complete && molduraImg.naturalWidth > 0) {
-        const finalMolduraW = W * ajusteMoldura.scale;
-        const finalMolduraH = H * ajusteMoldura.scale;
+        const molduraRatio = molduraImg.naturalWidth / molduraImg.naturalHeight;
+        const baseMolduraSize = Math.max(W, H);
+        const baseMolduraW = baseMolduraSize * molduraRatio;
+        const baseMolduraH = baseMolduraSize;
+
+        const finalMolduraW = baseMolduraW * ajusteMoldura.scale;
+        const finalMolduraH = baseMolduraH * ajusteMoldura.scale;
 
         const drawMolduraX = (W - finalMolduraW) / 2 + ajusteMoldura.x;
         const drawMolduraY = (H - finalMolduraH) / 2 + ajusteMoldura.y;
