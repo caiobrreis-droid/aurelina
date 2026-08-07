@@ -596,52 +596,53 @@ button:focus-visible {
 /* Rodapé */
 .rodape {
     position: absolute;
-    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
     left: 0;
     right: 0;
     text-align: center;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
-    z-index: 2;
+    gap: 8px;
+    z-index: 20;
 }
 
 .copyright-texto {
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.7) !important;
-    letter-spacing: 0.5px;
+    font-size: 0.78rem;
+    color: #ffffff !important;
     font-weight: 500;
+    letter-spacing: 0.5px;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
 }
 
 .credito-desenvolvedor {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 7px 20px;
+    padding: 8px 22px;
     border-radius: 50px;
-    background: linear-gradient(135deg, #123b73 0%, #1a5caa 100%);
-    border: 1.5px solid #f4c542;
-    color: #ffffff !important;
-    font-size: 0.88rem;
-    font-weight: 600;
+    background: #ffffff !important;
+    border: 2px solid #f4c542 !important;
+    color: #0a2351 !important;
+    font-size: 0.92rem;
+    font-weight: 700;
     letter-spacing: 0.4px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 15px rgba(244, 197, 66, 0.35);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4), 0 0 20px rgba(244, 197, 66, 0.5);
 }
 
 .credito-desenvolvedor span {
-    color: #ffffff !important;
+    color: #0a2351 !important;
 }
 
 .credito-desenvolvedor strong {
-    color: #ffd700 !important;
-    font-weight: 800;
+    color: #123b73 !important;
+    font-weight: 900;
     letter-spacing: 0.8px;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    text-transform: uppercase;
 }
 
 .credito-desenvolvedor svg {
-    color: #ffd700 !important;
+    color: #123b73 !important;
     flex-shrink: 0;
 }
 
