@@ -646,6 +646,18 @@ button:focus-visible {
     -webkit-user-select: none;
 }
 
+/* Linha circular extremamente fina e sutil ao redor da moldura */
+.moldura-circulo-linha {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 0.5px solid rgba(255, 255, 255, 0.15);
+    pointer-events: none;
+    z-index: 3;
+}
+
 /* Flash */
 .flash-overlay {
     position: absolute;

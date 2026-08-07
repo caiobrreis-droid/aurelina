@@ -348,7 +348,16 @@ function renderizarPreviewAjustado() {
         pCtx.drawImage(molduraImg, 0, 0, W, H);
     }
 
-    // 3. Atualizar o Blob para download e compartilhamento
+    // 3. Desenhar contorno circular extremamente fino e sutil
+    pCtx.save();
+    pCtx.beginPath();
+    pCtx.arc(W / 2, H / 2, (Math.min(W, H) / 2) - 0.5, 0, 2 * Math.PI);
+    pCtx.lineWidth = 0.5;
+    pCtx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+    pCtx.stroke();
+    pCtx.restore();
+
+    // 4. Atualizar o Blob para download e compartilhamento
     canvasPreview.toBlob(
         (blob) => {
             imagemFinalBlob = blob;
