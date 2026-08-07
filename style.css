@@ -596,14 +596,14 @@ button:focus-visible {
 /* Rodapé */
 .rodape {
     position: absolute;
-    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
     left: 0;
     right: 0;
     text-align: center;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     z-index: 20;
 }
 
@@ -621,28 +621,27 @@ button:focus-visible {
     gap: 8px;
     padding: 8px 22px;
     border-radius: 50px;
-    background: #ffffff !important;
-    border: 2px solid #f4c542 !important;
-    color: #0a2351 !important;
-    font-size: 0.92rem;
+    background: rgba(18, 59, 115, 0.9) !important;
+    border: 1.5px solid #ffd700 !important;
+    color: #ffffff !important;
+    font-size: 0.9rem;
     font-weight: 700;
-    letter-spacing: 0.4px;
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4), 0 0 20px rgba(244, 197, 66, 0.5);
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 15px rgba(255, 215, 0, 0.4);
+    backdrop-filter: blur(10px);
 }
 
-.credito-desenvolvedor span {
-    color: #0a2351 !important;
-}
-
+.credito-desenvolvedor *,
+.credito-desenvolvedor span,
 .credito-desenvolvedor strong {
-    color: #123b73 !important;
-    font-weight: 900;
-    letter-spacing: 0.8px;
-    text-transform: uppercase;
+    color: #ffffff !important;
+    font-weight: 800 !important;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
 }
 
 .credito-desenvolvedor svg {
-    color: #123b73 !important;
+    color: #ffd700 !important;
+    stroke: #ffd700 !important;
     flex-shrink: 0;
 }
 

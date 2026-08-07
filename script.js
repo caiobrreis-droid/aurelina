@@ -384,7 +384,14 @@ function renderizarPreviewAjustado() {
         const drawMolduraX = (W - finalMolduraW) / 2 + ajusteMoldura.x;
         const drawMolduraY = (H - finalMolduraH) / 2 + ajusteMoldura.y;
 
+        // Recortar apenas a faixa da moldura da parte inferior (removendo a linha fina superior)
+        pCtx.save();
+        pCtx.beginPath();
+        pCtx.rect(drawMolduraX, drawMolduraY + (finalMolduraH * 0.35), finalMolduraW, finalMolduraH * 0.65);
+        pCtx.clip();
+
         pCtx.drawImage(molduraImg, drawMolduraX, drawMolduraY, finalMolduraW, finalMolduraH);
+        pCtx.restore();
     }
 
     // 3. Atualizar o Blob para download e compartilhamento
