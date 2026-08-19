@@ -34,6 +34,7 @@ let initialPinchScale = 1.0;
    REFERÊNCIAS AOS ELEMENTOS
    ============================================ */
 const telaInicial    = document.getElementById('tela-inicial');
+const telaEscolherMoldura = document.getElementById('tela-escolher-moldura');
 const telaCamera     = document.getElementById('tela-camera');
 const telaPreview    = document.getElementById('tela-preview');
 const video          = document.getElementById('video-camera');
@@ -56,6 +57,12 @@ const btnNovaFoto       = document.getElementById('btn-nova-foto');
 const btnVoltarInicio   = document.getElementById('btn-voltar-inicio');
 const btnFecharErro     = document.getElementById('btn-fechar-erro');
 
+/* Controles de Seleção de Moldura */
+const molduraOpcoes       = document.querySelectorAll('.moldura-opcao');
+const btnConfirmarMoldura = document.getElementById('btn-confirmar-moldura');
+const btnVoltarMoldura    = document.getElementById('btn-voltar-moldura');
+let acaoAposMoldura = null; // 'camera' ou 'galeria'
+
 /* Controles de Modo, Zoom e Reset */
 const tabAjusteFoto    = document.getElementById('tab-ajuste-foto');
 const tabAjusteMoldura = document.getElementById('tab-ajuste-moldura');
@@ -68,10 +75,45 @@ const btnResetAjuste   = document.getElementById('btn-reset-ajuste');
 /* ============================================
    EVENTOS
    ============================================ */
-btnAcessarCamera.addEventListener('click', iniciarCamera);
+
+// Em vez de iniciar a câmera direto, abrimos a tela de escolha de moldura
+btnAcessarCamera.addEventListener('click', () => {
+    acaoAposMoldura = 'camera';
+    mostrarTela(telaEscolherMoldura);
+});
+
 if (btnAbrirGaleria) {
-    btnAbrirGaleria.addEventListener('click', () => inputGaleria.click());
+    btnAbrirGaleria.addEventListener('click', () => {
+        acaoAposMoldura = 'galeria';
+        mostrarTela(telaEscolherMoldura);
+    });
 }
+
+// Eventos da Tela de Escolha de Moldura
+molduraOpcoes.forEach(opcao => {
+    opcao.addEventListener('click', () => {
+        molduraOpcoes.forEach(opt => opt.classList.remove('moldura-selecionada'));
+        opcao.classList.add('moldura-selecionada');
+        CONFIG.MOLDURA_SRC = opcao.getAttribute('data-moldura');
+    });
+});
+
+if (btnConfirmarMoldura) {
+    btnConfirmarMoldura.addEventListener('click', () => {
+        preCarregarMoldura(); // Carrega a imagem da moldura escolhida
+        if (acaoAposMoldura === 'camera') {
+            iniciarCamera();
+        } else if (acaoAposMoldura === 'galeria') {
+            inputGaleria.click();
+        }
+    });
+}
+
+if (btnVoltarMoldura) {
+    btnVoltarMoldura.addEventListener('click', voltarInicio);
+}
+
+// O botão da galeria dentro da tela da câmera vai direto pro seletor, mantendo a moldura atual
 if (btnGaleriaCamera) {
     btnGaleriaCamera.addEventListener('click', () => inputGaleria.click());
 }
@@ -82,7 +124,10 @@ btnAlternarCamera.addEventListener('click', alternarCamera);
 btnVoltarCamera.addEventListener('click', voltarInicio);
 btnBaixar.addEventListener('click', baixarFoto);
 btnCompartilhar.addEventListener('click', compartilharFoto);
-btnNovaFoto.addEventListener('click', reiniciarCaptura);
+btnNovaFoto.addEventListener('click', () => {
+    acaoAposMoldura = 'camera';
+    mostrarTela(telaEscolherMoldura);
+});
 btnVoltarInicio.addEventListener('click', voltarInicio);
 btnFecharErro.addEventListener('click', fecharErro);
 
@@ -162,16 +207,21 @@ function preCarregarMoldura() {
     molduraImg = new Image();
     molduraImg.crossOrigin = 'anonymous';
     molduraImg.src = CONFIG.MOLDURA_SRC;
+    
+    // Atualiza a imagem da moldura sobreposta na tela da câmera
+    if (molduraOverlay) {
+        molduraOverlay.src = CONFIG.MOLDURA_SRC;
+    }
 }
 
 /* ============================================
    NAVEGAÇÃO ENTRE TELAS
    ============================================ */
 function mostrarTela(tela) {
-    [telaInicial, telaCamera, telaPreview].forEach(t => {
-        t.classList.remove('tela-ativa');
+    [telaInicial, telaEscolherMoldura, telaCamera, telaPreview].forEach(t => {
+        if (t) t.classList.remove('tela-ativa');
     });
-    tela.classList.add('tela-ativa');
+    if (tela) tela.classList.add('tela-ativa');
 }
 
 /* ============================================

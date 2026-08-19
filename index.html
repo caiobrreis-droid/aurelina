@@ -140,6 +140,59 @@
     </section>
 
     <!-- ============================================ -->
+    <!-- TELA DE ESCOLHA DA MOLDURA                  -->
+    <!-- ============================================ -->
+    <section id="tela-escolher-moldura" class="tela">
+        <div class="faixa-topo" aria-hidden="true">
+            <div class="faixa-topo-inner"></div>
+        </div>
+
+        <div class="tela-moldura-conteudo">
+            <div class="moldura-header fade-in">
+                <h2 class="moldura-titulo">Escolha sua moldura</h2>
+                <p class="moldura-subtitulo">Selecione o modelo que mais combina com você</p>
+            </div>
+
+            <div id="grid-molduras" class="grid-molduras fade-in delay-1">
+                <!-- Moldura 1 -->
+                <button class="moldura-opcao moldura-selecionada" data-moldura="assets/moldura.png" type="button">
+                    <div class="moldura-opcao-thumb">
+                        <img src="assets/moldura.png" alt="Moldura Modelo 1" draggable="false">
+                    </div>
+                    <span class="moldura-opcao-label">Modelo 1</span>
+                    <span class="moldura-check">✓</span>
+                </button>
+
+                <!-- Moldura 2 (placeholder – será substituída pela nova arte) -->
+                <button class="moldura-opcao" data-moldura="assets/moldura2.png" type="button">
+                    <div class="moldura-opcao-thumb">
+                        <img src="assets/moldura2.png" alt="Moldura Modelo 2" draggable="false">
+                    </div>
+                    <span class="moldura-opcao-label">Modelo 2</span>
+                    <span class="moldura-check">✓</span>
+                </button>
+            </div>
+
+            <div class="moldura-acoes fade-in delay-2">
+                <button id="btn-confirmar-moldura" class="btn btn-cta" type="button">
+                    <span>Continuar</span>
+                    <span class="btn-cta-seta" aria-hidden="true">→</span>
+                </button>
+                <button id="btn-voltar-moldura" class="btn btn-terciario" type="button">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+                    </svg>
+                    Voltar
+                </button>
+            </div>
+        </div>
+
+        <div class="faixa-rodape" aria-hidden="true">
+            <div class="faixa-rodape-inner"></div>
+        </div>
+    </section>
+
+    <!-- ============================================ -->
     <!-- TELA DA CÂMERA                               -->
     <!-- ============================================ -->
     <section id="tela-camera" class="tela">
