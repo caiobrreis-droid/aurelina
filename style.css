@@ -409,8 +409,14 @@ button:focus-visible {
 }
 
 .moldura-acoes .btn-terciario {
+    background: transparent;
     color: rgba(255, 255, 255, 0.7);
     border-color: rgba(255, 255, 255, 0.15);
+}
+
+.moldura-acoes .btn-terciario:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--branco);
 }
 
 
