@@ -5,7 +5,7 @@
 const CONFIG = {
     LARGURA_FINAL: 1080,
     ALTURA_FINAL: 1350,    // 4:5 (Instagram). Use 1080 para 1:1, ou 1920 para 9:16 (Stories).
-    MOLDURA_SRC: 'assets/moldura.png',
+    MOLDURA_SRC: 'assets/moldura-1.png',
     NOME_ARQUIVO: 'foto-aurelina-medeiros.png',
     TIPO_MIME: 'image/png',
     QUALIDADE: 1.0
