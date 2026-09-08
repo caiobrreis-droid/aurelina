@@ -538,9 +538,35 @@ function onWheel(e) {
 /* ============================================
    BAIXAR FOTO
    ============================================ */
-function baixarFoto() {
+async function baixarFoto() {
     if (!imagemFinalBlob) return;
 
+    // Detecta se é iOS (iPhone/iPad)
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    // No iOS, usamos Web Share API para que o usuário possa
+    // tocar em "Salvar Imagem" e ir direto para a Fototeca
+    if (isIOS && navigator.share && navigator.canShare) {
+        const arquivo = new File([imagemFinalBlob], CONFIG.NOME_ARQUIVO, {
+            type: CONFIG.TIPO_MIME
+        });
+
+        if (navigator.canShare({ files: [arquivo] })) {
+            try {
+                await navigator.share({
+                    files: [arquivo]
+                });
+                return; // Sucesso — o iOS exibiu a folha de compartilhamento
+            } catch (erro) {
+                // Se o usuário cancelou, não faz nada
+                if (erro.name === 'AbortError') return;
+                // Se deu outro erro, segue para o fallback abaixo
+            }
+        }
+    }
+
+    // Fallback padrão para Android e Desktop: download direto
     const url = URL.createObjectURL(imagemFinalBlob);
     const link = document.createElement('a');
     link.href = url;
